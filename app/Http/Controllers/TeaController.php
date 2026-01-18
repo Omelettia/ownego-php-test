@@ -11,7 +11,7 @@ class TeaController extends Controller
     {
         $data = $teaService->getMenuData();
         
-        dd($data); 
+        //dd($data); 
 
         return view('menu.index', $data);
     }
