@@ -10,6 +10,30 @@
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
+<script>
+    function updateFilters() {
+        const filterForm = document.getElementById('filterForm');
+        const sortValue = document.querySelector('select[name="sort"]').value;
+        
+        const formData = new FormData(filterForm);
+        formData.set('sort', sortValue); 
+        
+        const params = new URLSearchParams(formData).toString();
+        
+        window.history.pushState({}, '', `${window.location.pathname}?${params}`);
+
+        fetch(`${window.location.pathname}?${params}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('product-grid').innerHTML = html;
+        })
+        .catch(error => console.warn('Error fetching filters:', error));
+    }
+</script>
 <body class="bg-[#F3F4F6]">
 
     <div class="flex min-h-screen">
@@ -45,7 +69,7 @@
                             <input type="hidden" name="topping[]" value="{{ $topping }}">
                         @endforeach
                         
-                        <select name="sort" onchange="this.form.submit()" 
+                        <select name="sort" onchange="updateFilters()" 
                                 class="border border-slate-400 rounded px-4 py-1.5 bg-[#f1f5f9] text-slate-700 focus:outline-none cursor-pointer text-sm min-w-[140px]">
                             <option value="name_asc" {{ request('sort') == 'name_asc' ? 'selected' : '' }}>Name</option>
                             <option value="name_desc" {{ request('sort') == 'name_desc' ? 'selected' : '' }}>Name (Desc)</option>
@@ -68,7 +92,7 @@
                                 <div class="relative flex items-center justify-center">
                                     <input type="checkbox" name="topping[]" value="{{ $topping }}"
                                         {{ in_array($topping, request('topping', [])) ? 'checked' : '' }}
-                                        onchange="this.form.submit()"
+                                        onchange="updateFilters()"
                                         class="peer appearance-none w-6 h-6 border-2 border-slate-700 rounded-sm bg-white checked:bg-white transition-all cursor-pointer">
                                     <div class="absolute w-3.5 h-3.5 bg-[#1e293b] opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity"></div>
                                 </div>
@@ -80,32 +104,8 @@
             </div>
 
             {{-- <div class="bg-white p-6 rounded-lg shadow-sm mb-8">...Checkboxes...</div> --}}
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @foreach($products as $product)
-                    <div class="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition duration-300 border border-gray-100 flex flex-col justify-between h-full">
-                        
-                        <div>
-                            <div class="text-gray-500 text-sm mb-1 font-medium">MT-{{ str_pad($product['id'], 2, '0', STR_PAD_LEFT) }}</div>
-                            <h3 class="text-xl font-bold text-[#1e293b] mb-3">{{ $product['name'] }}</h3>
-                            
-                            <hr class="border-gray-200 mb-3">
-
-                            <div class="mb-6">
-                                <span class="text-sm font-bold text-[#1e293b]">Toppings:</span>
-                                <p class="text-sm text-gray-600 mt-1 leading-relaxed">
-                                    {{ implode(', ', $product['toppings']) }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="flex justify-between items-center mt-auto">
-                            <span class="bg-[#1e293b] text-white text-xs px-3 py-1 rounded">Trending</span>
-                            
-                            <span class="text-xl font-bold text-[#1e293b]">${{ number_format($product['price'], 1) }}</span>
-                        </div>
-                    </div>
-                @endforeach
+            <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @include('menu.partials.products')
             </div>
         </main>
     </div>

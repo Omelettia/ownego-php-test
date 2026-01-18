@@ -22,6 +22,10 @@ class TeaController extends Controller
     
         $data = $teaService->getMenuData($filters);
 
+        if ($request->ajax()) {
+        return view('menu.partials.products', ['products' => $data['products']])->render();
+        }
+
         return view('menu.index', $data);
     }
 }
