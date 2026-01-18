@@ -32,20 +32,51 @@
                 <h2 class="text-4xl font-bold text-[#1e293b]">Store 1  Menu</h2>
             </div>
 
-            <div class="flex justify-between items-center mb-8">
-                <button class="bg-[#1e293b] text-white px-6 py-2 rounded shadow hover:bg-slate-700 transition">
-                    Filter
+            <div class="flex justify-between items-center mb-6">
+                <button onclick="document.getElementById('filter-panel').classList.toggle('hidden')" 
+                        class="bg-[#1e293b] text-white px-8 py-2 rounded shadow hover:bg-slate-800 transition flex items-center gap-3">
+                    <span class="text-sm font-light">Filter</span>
                 </button>
 
-                <div class="flex items-center space-x-2">
-                    <span class="text-gray-600 font-medium">Sort By</span>
-                    <select class="border-2 border-gray-300 rounded px-3 py-2 bg-transparent text-gray-700 focus:outline-none focus:border-blue-500">
-                        <option>Name (Asc)</option>
-                        <option>Name (Desc)</option>
-                        <option>Price (Asc)</option>
-                        <option>Price (Desc)</option>
-                    </select>
+                <div class="flex items-center space-x-4">
+                    <span class="text-slate-700 font-semibold text-sm">Sort By</span>
+                    <form id="sortForm" action="{{ url()->current() }}" method="GET">
+                        @foreach(request('topping', []) as $topping)
+                            <input type="hidden" name="topping[]" value="{{ $topping }}">
+                        @endforeach
+                        
+                        <select name="sort" onchange="this.form.submit()" 
+                                class="border border-slate-400 rounded px-4 py-1.5 bg-[#f1f5f9] text-slate-700 focus:outline-none cursor-pointer text-sm min-w-[140px]">
+                            <option value="name_asc" {{ request('sort') == 'name_asc' ? 'selected' : '' }}>Name</option>
+                            <option value="name_desc" {{ request('sort') == 'name_desc' ? 'selected' : '' }}>Name (Desc)</option>
+                            <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>Price (Low)</option>
+                            <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Price (High)</option>
+                        </select>
+                    </form>
                 </div>
+            </div>
+
+            <div id="filter-panel" class="{{ request('topping') ? '' : 'hidden' }} bg-white p-8 rounded-sm shadow-sm border border-gray-100 mb-8">
+                <form id="filterForm" action="{{ url()->current() }}" method="GET">
+                    <input type="hidden" name="sort" value="{{ request('sort') }}">
+
+                    <h3 class="font-bold text-[#1e293b] text-base mb-6">Toppings:</h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-8">
+                        @foreach($allToppings as $topping)
+                            <label class="flex items-center space-x-4 cursor-pointer group">
+                                <div class="relative flex items-center justify-center">
+                                    <input type="checkbox" name="topping[]" value="{{ $topping }}"
+                                        {{ in_array($topping, request('topping', [])) ? 'checked' : '' }}
+                                        onchange="this.form.submit()"
+                                        class="peer appearance-none w-6 h-6 border-2 border-slate-700 rounded-sm bg-white checked:bg-white transition-all cursor-pointer">
+                                    <div class="absolute w-3.5 h-3.5 bg-[#1e293b] opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity"></div>
+                                </div>
+                                <span class="text-slate-700 group-hover:text-[#1e293b] font-medium transition text-lg">{{ $topping }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </form>
             </div>
 
             {{-- <div class="bg-white p-6 rounded-lg shadow-sm mb-8">...Checkboxes...</div> --}}

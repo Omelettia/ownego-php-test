@@ -4,7 +4,7 @@ namespace App\Services;
 
 class TeaService
 {
-    public function getMenuData()
+    public function getMenuData(array $filters = [])
     {
         $loadJson = function ($filename) {
             $path = storage_path('app/json/' . $filename);
@@ -39,10 +39,48 @@ class TeaService
             return $item;
         });
 
+        // Get Toppings List (Standardized)
+        $allToppings = $products->pluck('toppings')
+            ->flatten()
+            ->map(function ($item) {
+                return ucfirst(strtolower($item));
+            })
+            ->unique()
+            ->values();
+
+        //Filter by topping
+        if (!empty($filters['toppings'])) {
+            $products = $products->filter(function ($product) use ($filters) {
+                $productToppings = array_map('strtolower', $product['toppings']);
+                
+                $selectedToppings = array_map('strtolower', $filters['toppings']);
+
+                return count(array_intersect($productToppings, $selectedToppings)) === count($selectedToppings);
+            });
+        }
+
+        $sort = $filters['sort'] ?? 'name_asc';
+        //Sorting
+        switch ($sort) {
+            case 'price_asc':
+                $products = $products->sortBy('price');
+                break;
+            case 'price_desc':
+                $products = $products->sortByDesc('price');
+                break;
+            case 'name_desc':
+                $products = $products->sortByDesc('name');
+                break;
+            default: 
+                $products = $products->sortBy('name');
+                break;
+        }
+
         return [
             'products' => $products,
             'stores' => collect($stores),
             'storeProducts' => collect($shopProducts),
+            'allToppings' => $allToppings
         ];
     }
 }
